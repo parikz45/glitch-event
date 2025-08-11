@@ -24,7 +24,7 @@ function App() {
       <div className='flex mt-[40px] py-[25px] '>
 
         {/* registration */}
-        <div className='flex-2 ml-[50px] '>
+        <div className='flex-1 ml-[50px] '>
           <h2 className='text-3xl font-semibold text-white mb-5'>
             Registration
           </h2>
@@ -98,12 +98,12 @@ function App() {
         </div>
 
         {/* sponsor details */}
-        <div className='flex-1 flex flex-col mt-[20px] '>
+        <div className='flex-1 mx-[100px] flex flex-col mt-[20px] '>
           <span className='text-[24px] font-semibold '>Sponsors</span>
           <img src='sponsor.png' alt='Sponsor Logo' className='w-[200px] h-[200px] rounded-lg my-5' />
 
           {/* event details */}
-          <div className='flex flex-col gap-2 mt-[20px] bg-[#2d2b3c] rounded-lg p-5 mr-[30px]'>
+          <div className='w-[400px] flex flex-col gap-2 mt-[20px] bg-[#2d2b3c] rounded-lg p-5 mr-[30px]'>
             <span className='text-[24px] font-semibold'>Event Details</span>
             <p className='text-[18px]'>
               Join us for an exciting event filled with fun and learning. Participate in various activities and showcase your skills. Don't miss out on the chance to win amazing prizes!
