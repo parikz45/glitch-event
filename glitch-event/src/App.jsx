@@ -9,14 +9,14 @@ function App() {
   return (
     <div className='flex flex-col items-center bg-[#0D0E20] h-screen text-white overflow-y-auto '>
       {/* header */}
-      <div className="flex items-center w-full p-5 bg-gray-800/40 border-b border-gray-700">
+      <div className="flex items-center w-full p-2 lg:p-5 bg-gray-800/40 border-b border-gray-700">
         <img
           src="glitch_font.png"
           alt="Glitch Logo"
-          className="w-[150px] my-5 mx-5"
+          className="w-[70px] lg:w-[150px] my-5 mx-5"
         />
-        <h1 className="text-4xl ml-[350px] text-white font-bold mb-5">
-          Glitch Event Registration
+        <h1 className="text-[27px] lg:text-4xl ml-[30px] lg:ml-[350px] text-white font-bold mb-2 lg:mb-5">
+          Event Registration
         </h1>
       </div>
 
@@ -97,15 +97,12 @@ function App() {
           </form>
         </div>
 
-        {/* sponsor details */}
-        <div className='flex-1 mx-[100px] flex flex-col mt-[20px] '>
-          <span className='text-[24px] font-semibold '>Sponsors</span>
-          <img src='sponsor.png' alt='Sponsor Logo' className='w-[200px] h-[200px] rounded-lg my-5' />
 
+        <div className='flex-1 mx-[100px] flex flex-col mt-[20px] ml-[150px] '>
           {/* event details */}
           <div className='w-[400px] flex flex-col gap-2 mt-[20px] bg-[#2d2b3c] rounded-lg p-5 mr-[30px]'>
             <span className='text-[24px] font-semibold'>Event Details</span>
-            <p className='text-[18px]'>
+            <p className='text-[17px]'>
               Join us for an exciting event filled with fun and learning. Participate in various activities and showcase your skills. Don't miss out on the chance to win amazing prizes!
             </p>
             <p className='text-[18px] mt-2'>
@@ -114,6 +111,14 @@ function App() {
               Time: 4:30 PM
             </p>
           </div>
+
+          {/* sponsor details */}
+          <div className='flex flex-col mt-[30px]'>
+            <span className='text-[24px] font-semibold '>Sponsors</span>
+            <img src='sponsor.png' alt='Sponsor Logo' className='w-[200px] h-[200px] rounded-lg my-5' />
+          </div>
+
+
         </div>
 
       </div>
