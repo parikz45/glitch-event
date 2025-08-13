@@ -1,39 +1,122 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+
 
 function App() {
+
+  // Registration type and UI state
   const [team, setTeam] = useState(false);
   const [individual, setIndividual] = useState(false);
   const [joinTeam, setJoinTeam] = useState(false);
   const [thankYou, setThankYou] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
   const isMobile = window.matchMedia("(max-width: 768px)");
+
+  // Form data state
+  const [formData, setFormData] = useState({
+    fullName: '',
+    phone: '',
+    department: '',
+    semester: '',
+    batch: '',
+    teamName: '',
+    registrationType: '',
+    teamCode: '',
+    futureTeam: 'N/A',
+  });
 
   // Store generated codes
   const usedCodes = new Set();
-
   function generateUniqueCode(length = 6) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code;
-
     do {
       code = '';
       for (let i = 0; i < length; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
-    } while (usedCodes.has(code)); // Keep generating until it's unique
-
+    } while (usedCodes.has(code));
     usedCodes.add(code);
     return code;
   }
   const [teamCode, setTeamCode] = useState(generateUniqueCode());
   const [showCode, setShowCode] = useState(false);
 
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle registration type change
+  const handleRegistrationType = (type) => {
+    setFormData((prev) => ({ ...prev, registrationType: type }));
+    if (type === 'Individual') {
+      setTeam(false);
+      setIndividual(true);
+      setJoinTeam(false);
+      setShowCode(false);
+    } else if (type === 'team') {
+      setTeam(true);
+      setIndividual(false);
+    }
+  };
+
+  // Handle future team radio
+  const handleFutureTeam = (value) => {
+    setFormData((prev) => ({ ...prev, futureTeam: value || 'N/A' }));
+  };
+
+
+  // Handle team code input (for joining a team)
+  const handleTeamCodeInput = (e) => {
+    setFormData((prev) => ({ ...prev, teamCode: e.target.value }));
+  };
+
+  // When user creates a team, set the generated code in formData
+  const handleCreateTeam = () => {
+    setJoinTeam(false);
+    setFormData((prev) => ({ ...prev, futureTeam: 'N/A' }));
+    setShowCode(true);
+    setFormData((prev) => ({ ...prev, teamCode: teamCode }));
+  };
+
+  // Handle submit
   const handleSubmit = (e) => {
-    e.preventDefault(); 
-    setThankYou(true); 
+    e.preventDefault();
+    console.log(formData)
+    setIsLoading(true)
+    fetch('https://script.google.com/macros/s/AKfycbzE81P0Cq2LpmLQDcEmKfsaglEH_gQYUKText_0XxeF5jf5IrJruEybY69jei2VD0sXrA/exec', {
+      method: 'POST',
+      body: JSON.stringify(formData),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      mode:"no-cors", // Use 'no-cors' mode to avoid CORS issues with Google Apps Script
+    })
+      .then((response) => {
+        setTimeout(() => {
+          setIsLoading(false);
+          setThankYou(true);
+        }, 1000);
+       
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    
+        // Reset form data after submission
+        setFormData({
+          fullName: '',
+          phone: '',
+          department: '',
+          semester: '',
+          batch: '',
+          teamName: '',
+          registrationType: '',
+          teamCode: '',
+          futureTeam: '',
+      
+      });
   };
 
 
@@ -73,102 +156,160 @@ function App() {
               Registration
             </h2>
             <form onSubmit={handleSubmit} className='flex flex-col w-full mt-[25px] '>
-              {/* <div className='flex flex-col gap-5 mb-4'> */}
+              {/* Full Name */}
               <div className='flex flex-col gap-2'>
                 <span className='text-white text-[18px]'>Full Name</span>
-                <input required type='text' className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]' />
+                <input
+                  required
+                  type='text'
+                  name='fullName'
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]'
+                />
               </div>
+              {/* Phone No */}
               <div className='flex flex-col gap-2'>
                 <span className='text-white text-[18px]'>Phone No</span>
-                <input required type='text' className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]' />
+                <input
+                  required
+                  type='text'
+                  name='phone'
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]'
+                />
               </div>
-              {/* </div> */}
-
-              {/* <div className='flex flex-col gap-5 mb-4'> */}
+              {/* Department */}
               <div className='flex flex-col gap-2'>
                 <span className='text-white text-[18px]'>Department</span>
-                <input required type='text' className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]' />
+                <input
+                  required
+                  type='text'
+                  name='department'
+                  value={formData.department}
+                  onChange={handleInputChange}
+                  className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]'
+                />
               </div>
+              {/* Semester */}
               <div className='flex flex-col gap-2'>
                 <span className='text-white text-[18px]'>Semester</span>
-                <input required type='text' className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]' />
+                <input
+                  required
+                  type='text'
+                  name='semester'
+                  value={formData.semester}
+                  onChange={handleInputChange}
+                  className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]'
+                />
               </div>
-              {/* </div> */}
-
-              {/* <div className='flex flex-col gap-5 mb-4'> */}
+              {/* Batch */}
               <div className='flex flex-col gap-2'>
                 <span className='text-white text-[18px]'>Batch</span>
-                <input required type='text' className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]' />
+                <input
+                  required
+                  type='text'
+                  name='batch'
+                  value={formData.batch}
+                  onChange={handleInputChange}
+                  className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]'
+                />
               </div>
+              {/* Team Name */}
               <div className='flex flex-col gap-2'>
                 <span className='text-white text-[18px]'>Team Name (if registering as a team)</span>
-                <input type='text' className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]' />
+                <input
+                  type='text'
+                  name='teamName'
+                  value={formData.teamName}
+                  onChange={handleInputChange}
+                  className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]'
+                />
               </div>
-              {/* </div> */}
-
-              {/* registration type */}
+              {/* Registration Type */}
               <div className="flex flex-col gap-2 mb-4">
                 <span className="text-[17px]">Registration Type</span>
-
                 <div className='flex gap-5 mt-[10px] '>
                   <label className="flex items-center gap-2 text-white text-[14px]">
-                    <input type="radio" onChange={() => { setTeam(false), setIndividual(true), setJoinTeam(false), setShowCode(false) }} name="registrationType" value="individual" />
+                    <input
+                      type="radio"
+                      name="registrationType"
+                      value="Individual"
+                      checked={formData.registrationType === 'Individual'}
+                      onChange={() => handleRegistrationType('Individual')}
+                    />
                     Individual
                   </label>
-
                   <label className="flex items-center gap-2 text-white text-[14px]">
-                    <input required type="radio" onChange={() => (setTeam(true), setIndividual(false))} name="registrationType" value="team" />
+                    <input
+                      required
+                      type="radio"
+                      name="registrationType"
+                      value="team"
+                      checked={formData.registrationType === 'team'}
+                      onChange={() => handleRegistrationType('team')}
+                    />
                     Team
                   </label>
                 </div>
-
                 {team && (
                   <div className="flex gap-4 mt-2">
-                    <button type='button' onClick={() => { setJoinTeam(false), setShowCode(true) }} className="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 transition">
+                    <button type='button' onClick={handleCreateTeam} className="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 transition">
                       Create a team
                     </button>
-                    <button type='button' onClick={() => { setJoinTeam(true), setShowCode(false) }} className="bg-purple-500 text-white px-3 py-1 rounded-md hover:bg-purple-600 transition">
+                    <button type='button' onClick={() => { setJoinTeam(true); setShowCode(false); setFormData((prev) => ({ ...prev, futureTeam: 'N/A' })); }} className="bg-purple-500 text-white px-3 py-1 rounded-md hover:bg-purple-600 transition">
                       Join a team
                     </button>
                   </div>
                 )}
-
                 {joinTeam && (
                   <div className=''>
                     <span className='text-white text-[17px] mt-2'>Enter the team code:</span>
-                    <input type='text' className='outline-none p-2 mb-4 bg-white text-black rounded-md mt-[20px] w-[340px] lg:w-[600px]' />
+                    <input
+                      type='text'
+                      name='teamCode'
+                      value={formData.teamCode}
+                      onChange={handleTeamCodeInput}
+                      className='outline-none p-2 mb-4 bg-white text-black rounded-md mt-[20px] w-[340px] lg:w-[600px]'
+                    />
                   </div>
-
                 )}
-
                 {showCode && (
                   <div className='mt-2'>
                     <span className='text-white text-[17px]'>Your team code is: {teamCode} </span>
                   </div>
                 )}
-
                 {individual && (
                   <div className="mt-2 ">
                     <span className='text-white text-[17px] '>Do you wish to join a team later?</span>
-
                     <div className='flex gap-5 mt-[10px] '>
                       <label className="flex items-center gap-2 text-white text-[14px]">
-                        <input type="radio" name="futureTeam" value="yes" />
+                        <input
+                          type="radio"
+                          name="futureTeam"
+                          value="yes"
+                          checked={formData.futureTeam === 'yes'}
+                          onChange={() => handleFutureTeam('yes')}
+                        />
                         Yes
                       </label>
-
                       <label className="flex items-center gap-2 text-white text-[14px]">
-                        <input type="radio" name="futureTeam" value="no" />
+                        <input
+                          type="radio"
+                          name="futureTeam"
+                          value="no"
+                          checked={formData.futureTeam === 'no'}
+                          onChange={() => handleFutureTeam('no')}
+                        />
                         No
                       </label>
                     </div>
                   </div>
                 )}
               </div>
-
-
-              <button type='submit' className='bg-blue-500 w-[130px] mt-[10px] text-white p-2 rounded-md hover:bg-blue-600 cursor-pointer transition-colors duration-300'>
-                Register Now
+              <button type='submit' className={`${isLoading ? "bg-blue-300" : "bg-blue-600"} w-[130px] mt-[10px] text-white p-2 rounded-md hover:bg-blue-700 cursor-pointer transition-colors duration-300`}>
+                {isLoading ? "Loading..." : "Register Now"}
               </button>
             </form>
           </div>
