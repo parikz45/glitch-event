@@ -13,7 +13,7 @@ function App() {
   const [thankYou, setThankYou] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   // validation errors
-  const [errors, setErrors] = useState({ fullName: '', phone: '', department: '', semester: '', futureTeam: '' });
+  const [errors, setErrors] = useState({ fullName: '', phone: '', department: '', semester: '', futureTeam: '', teamName: '', teamCode: '' });
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -79,6 +79,8 @@ function App() {
   // Handle team code input (for joining a team)
   const handleTeamCodeInput = (e) => {
     setFormData((prev) => ({ ...prev, teamCode: e.target.value }));
+    // clear teamCode error on change
+    if (errors.teamCode) setErrors((prev) => ({ ...prev, teamCode: '' }));
   };
 
   // When user creates a team, set the generated code in formData
@@ -102,6 +104,16 @@ function App() {
     // Validate future team selection for individual registration
     if (formData.registrationType === 'Individual' && formData.futureTeam === 'N/A') {
       newErrors.futureTeam = 'Please select yes or no for joining a team later';
+    }
+
+    // Validate team name for team creation
+    if (formData.registrationType === 'team' && !joinTeam && !formData.teamName.trim()) {
+      newErrors.teamName = 'Team name is required';
+    }
+
+    // Validate team code for joining a team
+    if (formData.registrationType === 'team' && joinTeam && !formData.teamCode.trim()) {
+      newErrors.teamCode = 'Team code is required to join a team';
     }
 
     if (Object.keys(newErrors).length) {
@@ -144,7 +156,7 @@ function App() {
     setIndividual(false);
     setJoinTeam(false);
     setShowCode(false);
-    setErrors({ fullName: '', phone: '', department: '', semester: '', futureTeam: '' });
+    setErrors({ fullName: '', phone: '', department: '', semester: '', futureTeam: '', teamName: '', teamCode: '' });
   };
 
   // utility classes mirroring musashi / shadcn style tokens
@@ -326,14 +338,14 @@ function App() {
                           <button
                             type='button'
                             onClick={handleCreateTeam}
-                            className='px-5 py-2.5 rounded-sm bg-green-600 hover:bg-green-500 text-white text-sm font-medium tracking-wide transition-colors'
+                            className='px-5 py-2.5 rounded-sm bg-pink-500 hover:bg-pink-400 text-white text-sm font-medium tracking-wide transition-colors'
                           >
                             Create a Team
                           </button>
                           <button
                             type='button'
                             onClick={() => { setJoinTeam(true); setShowCode(false); setFormData((prev) => ({ ...prev, futureTeam: 'N/A', teamCode: '' })); }}
-                            className='px-5 py-2.5 rounded-sm bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium tracking-wide transition-colors'
+                            className='px-5 py-2.5 rounded-sm bg-[#1e2133] hover:bg-[#2a2d47] border border-white/20 hover:border-pink-500/50 text-white text-sm font-medium tracking-wide transition-colors'
                           >
                             Join a Team
                           </button>
@@ -351,9 +363,12 @@ function App() {
                           name='teamCode'
                           value={formData.teamCode}
                           onChange={handleTeamCodeInput}
-                          className={baseInput + ' border-white/20'}
+                          className={`${baseInput} ${errors.teamCode ? 'border-red-500 focus:ring-red-500' : 'border-white/20'}`}
                           placeholder='ABC123'
+                          aria-invalid={!!errors.teamCode}
+                          aria-describedby={errors.teamCode ? 'error-teamCode' : undefined}
                         />
+                        {errors.teamCode && <p id='error-teamCode' className={errorText}>{errors.teamCode}</p>}
                       </div>
                     )}
 
@@ -403,7 +418,7 @@ function App() {
                     )}
 
                     {/* Team Name (conditional) */}
-                    {team && !joinTeam && (
+                    {team && !joinTeam && showCode && (
                       <div className='mt-6'>
                         <label htmlFor='teamName' className={labelClasses}>Team Name</label>
                         <input
@@ -412,8 +427,12 @@ function App() {
                           name='teamName'
                           value={formData.teamName}
                           onChange={handleInputChange}
-                          className={baseInput + ' border-white/20'}
+                          className={`${baseInput} ${errors.teamName ? 'border-red-500 focus:ring-red-500' : 'border-white/20'}`}
+                          placeholder='Enter your team name'
+                          aria-invalid={!!errors.teamName}
+                          aria-describedby={errors.teamName ? 'error-teamName' : undefined}
                         />
+                        {errors.teamName && <p id='error-teamName' className={errorText}>{errors.teamName}</p>}
                       </div>
                     )}
                   </div>
