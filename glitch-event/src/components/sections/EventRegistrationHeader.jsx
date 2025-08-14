@@ -1,13 +1,13 @@
 import React from 'react';
 
-
+import logo from '../../assets/ctrlcreate@3x.png'
 const EventRegistrationHeader = () => {
   return (
     <section className="bg-[#0D0E20] py-16 md:py-20">
       <div className="container mx-auto px-4 text-center">
         <div className="mb-10 flex justify-center">
           <img
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/fd767042-7588-4f83-b25c-6c45bbdbdc06-glitch-cet-website-vercel-app/assets/images/glitch_font-1.png"
+            src={logo}
             alt="Glitch Logo"
             width={238}
             height={62}
@@ -15,7 +15,11 @@ const EventRegistrationHeader = () => {
           />
         </div>
 
-        
+        <div className="max-w-2xl mx-auto mb-6">
+          <p className="text-gray-300 text-lg md:text-2xl leading-relaxed" style={{fontFamily:'neopixel'}}>
+        A 30-day game development challenge to bring your ideas to life. Take on the competition and rise through the leaderboard, with mentors available to guide you and clear your doubts. Exciting prizes await at the top!
+          </p>
+        </div>
 
         
       </div>
