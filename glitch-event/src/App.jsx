@@ -13,7 +13,7 @@ function App() {
   const [thankYou, setThankYou] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   // validation errors
-  const [errors, setErrors] = useState({ fullName: '', phone: '', department: '', semester: '' });
+  const [errors, setErrors] = useState({ fullName: '', phone: '', department: '', semester: '', futureTeam: '' });
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -72,6 +72,8 @@ function App() {
   // Handle future team radio / checkbox
   const handleFutureTeam = (value) => {
     setFormData((prev) => ({ ...prev, futureTeam: value || 'N/A' }));
+    // clear futureTeam error on change
+    if (errors.futureTeam) setErrors((prev) => ({ ...prev, futureTeam: '' }));
   };
 
   // Handle team code input (for joining a team)
@@ -96,6 +98,11 @@ function App() {
     if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Phone must be 10 digits';
     if (!formData.department) newErrors.department = 'Department is required';
     if (!formData.semester) newErrors.semester = 'Semester is required';
+    
+    // Validate future team selection for individual registration
+    if (formData.registrationType === 'Individual' && formData.futureTeam === 'N/A') {
+      newErrors.futureTeam = 'Please select yes or no for joining a team later';
+    }
 
     if (Object.keys(newErrors).length) {
       setErrors((prev)=>({ ...prev, ...newErrors }));
@@ -137,7 +144,7 @@ function App() {
     setIndividual(false);
     setJoinTeam(false);
     setShowCode(false);
-    setErrors({ fullName: '', phone: '', department: '', semester: '' });
+    setErrors({ fullName: '', phone: '', department: '', semester: '', futureTeam: '' });
   };
 
   // utility classes mirroring musashi / shadcn style tokens
@@ -311,21 +318,26 @@ function App() {
 
                     {/* Team actions */}
                     {team && (
-                      <div className='flex flex-wrap gap-4 mt-6'>
-                        <button
-                          type='button'
-                          onClick={handleCreateTeam}
-                          className='px-5 py-2.5 rounded-sm bg-green-600 hover:bg-green-500 text-white text-sm font-medium tracking-wide transition-colors'
-                        >
-                          Create a Team
-                        </button>
-                        <button
-                          type='button'
-                          onClick={() => { setJoinTeam(true); setShowCode(false); setFormData((prev) => ({ ...prev, futureTeam: 'N/A', teamCode: '' })); }}
-                          className='px-5 py-2.5 rounded-sm bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium tracking-wide transition-colors'
-                        >
-                          Join a Team
-                        </button>
+                      <div className='mt-6'>
+                        <div className='mb-4 text-sm text-gray-400'>
+                          <span className='text-pink-400'>Note:</span> Maximum team size is 4 members
+                        </div>
+                        <div className='flex flex-wrap gap-4'>
+                          <button
+                            type='button'
+                            onClick={handleCreateTeam}
+                            className='px-5 py-2.5 rounded-sm bg-green-600 hover:bg-green-500 text-white text-sm font-medium tracking-wide transition-colors'
+                          >
+                            Create a Team
+                          </button>
+                          <button
+                            type='button'
+                            onClick={() => { setJoinTeam(true); setShowCode(false); setFormData((prev) => ({ ...prev, futureTeam: 'N/A', teamCode: '' })); }}
+                            className='px-5 py-2.5 rounded-sm bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium tracking-wide transition-colors'
+                          >
+                            Join a Team
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -386,6 +398,7 @@ function App() {
                             <span className='ml-3 text-sm'>No</span>
                           </label>
                         </div>
+                        {errors.futureTeam && <p className={errorText}>{errors.futureTeam}</p>}
                       </div>
                     )}
 
