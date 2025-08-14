@@ -1,1 +1,33 @@
+@font-face {
+  font-family: 'Morton';
+  src: url('./assets/fonts/MORTON.REGULAR.OTF') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Neopixel';
+  src: url('./assets/fonts/NEOPIXEL-REGULAR.OTF') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pixelify Sans';
+  src: url('./assets/fonts/PIXELIFYSANS-VARIABLEFONT_WGHT.TTF') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  html { font-family: 'Morton', sans-serif; }
+}
+
 @import "tailwindcss";
+
+
+html {
+  scroll-behavior: smooth;
+  overscroll-behavior: none;
+}

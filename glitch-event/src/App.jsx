@@ -1,5 +1,8 @@
 import { useState } from 'react'
+import EventRegistrationHeader from './components/sections/EventRegistrationHeader.jsx'
 
+
+import hachi from './assets/Hachi.svg'
 
 function App() {
 
@@ -9,7 +12,8 @@ function App() {
   const [joinTeam, setJoinTeam] = useState(false);
   const [thankYou, setThankYou] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const isMobile = window.matchMedia("(max-width: 768px)");
+  // validation errors
+  const [errors, setErrors] = useState({ fullName: '', phone: '', department: '', semester: '' });
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -19,9 +23,9 @@ function App() {
     semester: '',
     batch: '',
     teamName: '',
-    registrationType: '',
+    registrationType: '', // 'Individual' | 'team'
     teamCode: '',
-    futureTeam: 'N/A',
+    futureTeam: 'N/A', // 'yes' | 'no' | 'N/A'
   });
 
   // Store generated codes
@@ -38,13 +42,15 @@ function App() {
     usedCodes.add(code);
     return code;
   }
-  const [teamCode, setTeamCode] = useState(generateUniqueCode());
+  const [teamCode] = useState(generateUniqueCode());
   const [showCode, setShowCode] = useState(false);
 
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // clear field error on change
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   // Handle registration type change
@@ -55,17 +61,18 @@ function App() {
       setIndividual(true);
       setJoinTeam(false);
       setShowCode(false);
+      setFormData((prev)=>({...prev, teamCode: '', teamName: '', futureTeam: 'N/A'}))
     } else if (type === 'team') {
       setTeam(true);
       setIndividual(false);
+      setFormData((prev)=>({...prev, futureTeam: 'N/A'}))
     }
   };
 
-  // Handle future team radio
+  // Handle future team radio / checkbox
   const handleFutureTeam = (value) => {
     setFormData((prev) => ({ ...prev, futureTeam: value || 'N/A' }));
   };
-
 
   // Handle team code input (for joining a team)
   const handleTeamCodeInput = (e) => {
@@ -83,7 +90,18 @@ function App() {
   // Handle submit
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData)
+
+    const newErrors = {};
+    if (!formData.fullName.trim()) newErrors.fullName = 'Name is required';
+    if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Phone must be 10 digits';
+    if (!formData.department) newErrors.department = 'Department is required';
+    if (!formData.semester) newErrors.semester = 'Semester is required';
+
+    if (Object.keys(newErrors).length) {
+      setErrors((prev)=>({ ...prev, ...newErrors }));
+      return;
+    }
+
     setIsLoading(true)
     fetch('https://script.google.com/macros/s/AKfycbzE81P0Cq2LpmLQDcEmKfsaglEH_gQYUKText_0XxeF5jf5IrJruEybY69jei2VD0sXrA/exec', {
       method: 'POST',
@@ -91,259 +109,324 @@ function App() {
       headers: {
         'Content-Type': 'application/json',
       },
-      mode:"no-cors", // Use 'no-cors' mode to avoid CORS issues with Google Apps Script
+      mode: 'no-cors',
     })
-      .then((response) => {
+      .then(() => {
         setTimeout(() => {
           setIsLoading(false);
           setThankYou(true);
-        }, 1000);
-       
+        }, 800);
       })
       .catch((error) => {
         console.error('Error:', error);
       });
-    
-        // Reset form data after submission
-        setFormData({
-          fullName: '',
-          phone: '',
-          department: '',
-          semester: '',
-          batch: '',
-          teamName: '',
-          registrationType: '',
-          teamCode: '',
-          futureTeam: '',
-      
-      });
+
+    // Reset form data after submission
+    setFormData({
+      fullName: '',
+      phone: '',
+      department: '',
+      semester: '',
+      batch: '',
+      teamName: '',
+      registrationType: '',
+      teamCode: '',
+      futureTeam: 'N/A',
+    });
+    setTeam(false);
+    setIndividual(false);
+    setJoinTeam(false);
+    setShowCode(false);
+    setErrors({ fullName: '', phone: '', department: '', semester: '' });
   };
 
+  // utility classes mirroring musashi / shadcn style tokens
+  const baseInput = 'w-full bg-[#1e2133] border rounded-sm px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all';
+  const inputClasses = (field) => `${baseInput} ${errors[field] ? 'border-red-500 focus:ring-red-500' : 'border-white/20'}`;
+  const labelClasses = 'block mb-2 text-sm font-medium text-gray-300 uppercase tracking-wider';
+  const errorText = 'mt-2 text-xs text-red-400 font-medium tracking-wide';
+  const sectionBg = 'bg-[#0D0E20]';
 
   return (
     <>
-      <div className='flex flex-col items-center bg-[#0D0E20] h-screen text-white overflow-y-auto '>
-        {/* header */}
-        <div className="flex items-center w-full p-2 lg:p-5 bg-gray-800/40 border-b border-gray-700">
-          <img
-            src="glitch_font.png"
-            alt="Glitch Logo"
-            className="w-[70px] lg:w-[150px] my-5 mx-5"
-          />
-          <h1 className="text-[28px] lg:text-4xl ml-[30px] lg:ml-[350px] text-white font-bold mb-2 lg:mb-5">
-            Event Registration
-          </h1>
-        </div>
+      <EventRegistrationHeader />
+      
+      <div className={`${sectionBg} min-h-screen text-white pb-24`}> {/* overall page wrapper */}
+        {!thankYou && (
+          <section className='py-16 md:py-24'>
+            <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
+              <div className='text-center mb-12'>
+                <h2 className='text-2xl md:text-4xl font-bold  uppercase ' style={{ fontFamily: 'morton' }}>
+                Registration Form
+                </h2>
+              </div>
 
-
-        {!thankYou && (<div className={`flex mt-[40px] py-[25px] ${isMobile.matches ? 'flex-col' : 'flex-row'} `}>
-
-          {isMobile.matches && (<div className='w-[350px] flex flex-col gap-2 mt-[20px] bg-[#2d2b3c] rounded-lg p-5 mx-[30px] '>
-            <span className='text-[24px] font-semibold'>Event Details</span>
-            <p className='text-[17px]'>
-              Join us for an exciting event filled with fun and learning. Participate in various activities and showcase your skills. Don't miss out on the chance to win amazing prizes!
-            </p>
-            <p className='text-[18px] mt-2'>
-              Date: 26th August 2025<br />
-              Venue: CS classroom<br />
-              Time: 4:30 PM
-            </p>
-          </div>)}
-
-          {/* registration */}
-          <div className='flex-1 mt-[25px] ml-[40px] lg:ml-[50px] '>
-            <h2 className='text-3xl font-semibold text-white mb-5'>
-              Registration
-            </h2>
-            <form onSubmit={handleSubmit} className='flex flex-col w-full mt-[25px] '>
-              {/* Full Name */}
-              <div className='flex flex-col gap-2'>
-                <span className='text-white text-[18px]'>Full Name</span>
-                <input
-                  required
-                  type='text'
-                  name='fullName'
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]'
+              <div className='bg-[#1f2133]/60 border border-white/10 rounded-lg p-8 md:p-12 shadow-md backdrop-blur-sm 'style={{ fontFamily: 'neopixel' }}>
+                <div className='mb-8 text-center'>
+                <img
+                  src={hachi}
+                  alt="Hachi Logo"
+                  className="mx-auto mb-4"
+                  width={55}
+                  height={32}
                 />
-              </div>
-              {/* Phone No */}
-              <div className='flex flex-col gap-2'>
-                <span className='text-white text-[18px]'>Phone No</span>
-                <input
-                  required
-                  type='text'
-                  name='phone'
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]'
-                />
-              </div>
-              {/* Department */}
-              <div className='flex flex-col gap-2'>
-                <span className='text-white text-[18px]'>Department</span>
-                <input
-                  required
-                  type='text'
-                  name='department'
-                  value={formData.department}
-                  onChange={handleInputChange}
-                  className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]'
-                />
-              </div>
-              {/* Semester */}
-              <div className='flex flex-col gap-2'>
-                <span className='text-white text-[18px]'>Semester</span>
-                <input
-                  required
-                  type='text'
-                  name='semester'
-                  value={formData.semester}
-                  onChange={handleInputChange}
-                  className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]'
-                />
-              </div>
-              {/* Batch */}
-              <div className='flex flex-col gap-2'>
-                <span className='text-white text-[18px]'>Batch</span>
-                <input
-                  required
-                  type='text'
-                  name='batch'
-                  value={formData.batch}
-                  onChange={handleInputChange}
-                  className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]'
-                />
-              </div>
-              {/* Team Name */}
-              <div className='flex flex-col gap-2'>
-                <span className='text-white text-[18px]'>Team Name (if registering as a team)</span>
-                <input
-                  type='text'
-                  name='teamName'
-                  value={formData.teamName}
-                  onChange={handleInputChange}
-                  className='outline-none p-2 mb-4 bg-white text-black rounded-md w-[340px] lg:w-[600px]'
-                />
-              </div>
-              {/* Registration Type */}
-              <div className="flex flex-col gap-2 mb-4">
-                <span className="text-[17px]">Registration Type</span>
-                <div className='flex gap-5 mt-[10px] '>
-                  <label className="flex items-center gap-2 text-white text-[14px]">
-                    <input
-                      type="radio"
-                      name="registrationType"
-                      value="Individual"
-                      checked={formData.registrationType === 'Individual'}
-                      onChange={() => handleRegistrationType('Individual')}
-                    />
-                    Individual
-                  </label>
-                  <label className="flex items-center gap-2 text-white text-[14px]">
+                </div>
+                <form onSubmit={handleSubmit} className='grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8'>
+                  {/* Full Name */}
+                  <div>
+                    <label htmlFor='fullName' className={labelClasses}>Full Name</label>
                     <input
                       required
-                      type="radio"
-                      name="registrationType"
-                      value="team"
-                      checked={formData.registrationType === 'team'}
-                      onChange={() => handleRegistrationType('team')}
-                    />
-                    Team
-                  </label>
-                </div>
-                {team && (
-                  <div className="flex gap-4 mt-2">
-                    <button type='button' onClick={handleCreateTeam} className="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 transition">
-                      Create a team
-                    </button>
-                    <button type='button' onClick={() => { setJoinTeam(true); setShowCode(false); setFormData((prev) => ({ ...prev, futureTeam: 'N/A' })); }} className="bg-purple-500 text-white px-3 py-1 rounded-md hover:bg-purple-600 transition">
-                      Join a team
-                    </button>
-                  </div>
-                )}
-                {joinTeam && (
-                  <div className=''>
-                    <span className='text-white text-[17px] mt-2'>Enter the team code:</span>
-                    <input
                       type='text'
-                      name='teamCode'
-                      value={formData.teamCode}
-                      onChange={handleTeamCodeInput}
-                      className='outline-none p-2 mb-4 bg-white text-black rounded-md mt-[20px] w-[340px] lg:w-[600px]'
+                      id='fullName'
+                      name='fullName'
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      className={inputClasses('fullName')}
+                      placeholder='Enter your full name'
+                      aria-invalid={!!errors.fullName}
+                      aria-describedby={errors.fullName ? 'error-fullName' : undefined}
+                    />
+                    {errors.fullName && <p id='error-fullName' className={errorText}>{errors.fullName}</p>}
+                  </div>
+                  {/* Phone */}
+                  <div>
+                    <label htmlFor='phone' className={labelClasses}>Phone Number</label>
+                    <input
+                      required
+                      type='tel'
+                      id='phone'
+                      name='phone'
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className={inputClasses('phone')}
+                      placeholder='10 digit number'
+                      pattern='\d{10}'
+                      aria-invalid={!!errors.phone}
+                      aria-describedby={errors.phone ? 'error-phone' : undefined}
+                    />
+                    {errors.phone && <p id='error-phone' className={errorText}>{errors.phone}</p>}
+                  </div>
+                  {/* Department (dropdown) */}
+                  <div>
+                    <label htmlFor='department' className={labelClasses}>Department</label>
+                    <select
+                      required
+                      id='department'
+                      name='department'
+                      value={formData.department}
+                      onChange={handleInputChange}
+                      className={inputClasses('department')}
+                      aria-invalid={!!errors.department}
+                      aria-describedby={errors.department ? 'error-department' : undefined}
+                    >
+                      <option value='' disabled>Choose department</option>
+                      <option value='CS'>CS</option>
+                      <option value='AE'>AE</option>
+                      <option value='EEE'>EEE</option>
+                      <option value='ECE'>ECE</option>
+                      <option value='CE'>CE</option>
+                      <option value='EL'>EL</option>
+                      <option value='IE'>IE</option>
+                      <option value='ME'>ME</option>
+                    </select>
+                    {errors.department && <p id='error-department' className={errorText}>{errors.department}</p>}
+                  </div>
+                  {/* Semester (dropdown) */}
+                  <div>
+                    <label htmlFor='semester' className={labelClasses}>Semester</label>
+                    <select
+                      required
+                      id='semester'
+                      name='semester'
+                      value={formData.semester}
+                      onChange={handleInputChange}
+                      className={inputClasses('semester')}
+                      aria-invalid={!!errors.semester}
+                      aria-describedby={errors.semester ? 'error-semester' : undefined}
+                    >
+                      <option value='' disabled>Choose semester</option>
+                      <option value='S1'>S1</option>
+                      <option value='S2'>S2</option>
+                      <option value='S3'>S3</option>
+                      <option value='S4'>S4</option>
+                      <option value='S5'>S5</option>
+                      <option value='S6'>S6</option>
+                      <option value='S7'>S7</option>
+                      <option value='S8'>S8</option>
+                    </select>
+                    {errors.semester && <p id='error-semester' className={errorText}>{errors.semester}</p>}
+                  </div>
+                  {/* Batch */}
+                  <div className='md:col-span-2'>
+                    <label htmlFor='batch' className={labelClasses}>Batch</label>
+                    <input
+                      required
+                      type='text'
+                      id='batch'
+                      name='batch'
+                      value={formData.batch}
+                      onChange={handleInputChange}
+                      className={inputClasses('batch')}
                     />
                   </div>
-                )}
-                {showCode && (
-                  <div className='mt-2'>
-                    <span className='text-white text-[17px]'>Your team code is: {teamCode} </span>
-                  </div>
-                )}
-                {individual && (
-                  <div className="mt-2 ">
-                    <span className='text-white text-[17px] '>Do you wish to join a team later?</span>
-                    <div className='flex gap-5 mt-[10px] '>
-                      <label className="flex items-center gap-2 text-white text-[14px]">
+                  {/* Registration Type */}
+                  <div className='md:col-span-2'>
+                    <span className={labelClasses}>Registration Type</span>
+                    <div className='mt-2 flex flex-wrap items-center gap-8'>
+                      <label className='flex items-center cursor-pointer text-white'>
                         <input
-                          type="radio"
-                          name="futureTeam"
-                          value="yes"
-                          checked={formData.futureTeam === 'yes'}
-                          onChange={() => handleFutureTeam('yes')}
+                          type='radio'
+                          name='registrationType'
+                          value='Individual'
+                          checked={formData.registrationType === 'Individual'}
+                          onChange={() => handleRegistrationType('Individual')}
+                          className='sr-only peer'
+                          required
                         />
-                        Yes
+                        <span className='w-5 h-5 rounded-full border-2 border-white/40 flex items-center justify-center transition-all peer-checked:border-pink-500'>
+                          <span className='w-2.5 h-2.5 rounded-full bg-pink-500 scale-0 peer-checked:scale-100 transition-transform duration-150'></span>
+                        </span>
+                        <span className='ml-3 text-sm tracking-wide'>Individual</span>
                       </label>
-                      <label className="flex items-center gap-2 text-white text-[14px]">
+                      <label className='flex items-center cursor-pointer text-white'>
                         <input
-                          type="radio"
-                          name="futureTeam"
-                          value="no"
-                          checked={formData.futureTeam === 'no'}
-                          onChange={() => handleFutureTeam('no')}
+                          type='radio'
+                          name='registrationType'
+                          value='team'
+                          checked={formData.registrationType === 'team'}
+                          onChange={() => handleRegistrationType('team')}
+                          className='sr-only peer'
+                          required
                         />
-                        No
+                        <span className='w-5 h-5 rounded-full border-2 border-white/40 flex items-center justify-center transition-all peer-checked:border-pink-500'>
+                          <span className='w-2.5 h-2.5 rounded-full bg-pink-500 scale-0 peer-checked:scale-100 transition-transform duration-150'></span>
+                        </span>
+                        <span className='ml-3 text-sm tracking-wide'>Team</span>
                       </label>
                     </div>
+
+                    {/* Team actions */}
+                    {team && (
+                      <div className='flex flex-wrap gap-4 mt-6'>
+                        <button
+                          type='button'
+                          onClick={handleCreateTeam}
+                          className='px-5 py-2.5 rounded-sm bg-green-600 hover:bg-green-500 text-white text-sm font-medium tracking-wide transition-colors'
+                        >
+                          Create a Team
+                        </button>
+                        <button
+                          type='button'
+                          onClick={() => { setJoinTeam(true); setShowCode(false); setFormData((prev) => ({ ...prev, futureTeam: 'N/A', teamCode: '' })); }}
+                          className='px-5 py-2.5 rounded-sm bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium tracking-wide transition-colors'
+                        >
+                          Join a Team
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Enter team code when joining */}
+                    {joinTeam && (
+                      <div className='mt-6'>
+                        <label htmlFor='teamCode' className={labelClasses}>Enter Team Code</label>
+                        <input
+                          type='text'
+                          id='teamCode'
+                          name='teamCode'
+                          value={formData.teamCode}
+                          onChange={handleTeamCodeInput}
+                          className={baseInput + ' border-white/20'}
+                          placeholder='ABC123'
+                        />
+                      </div>
+                    )}
+
+                    {/* Generated code display */}
+                    {showCode && (
+                      <div className='mt-6 text-sm text-gray-200 font-mono'>
+                        Your team code: <span className='text-pink-400 font-semibold'>{teamCode}</span>
+                      </div>
+                    )}
+
+                    {/* Future team intention for individual */}
+                    {individual && (
+                      <div className='mt-6'>
+                        <span className='block mb-2 text-xs font-medium text-gray-400 tracking-wider uppercase'>Join a Team Later?</span>
+                        <div className='flex gap-8'>
+                          <label className='flex items-center cursor-pointer text-white'>
+                            <input
+                              type='radio'
+                              name='futureTeam'
+                              value='yes'
+                              checked={formData.futureTeam === 'yes'}
+                              onChange={() => handleFutureTeam('yes')}
+                              className='sr-only peer'
+                            />
+                            <span className='w-5 h-5 rounded-full border-2 border-white/40 flex items-center justify-center transition-all peer-checked:border-pink-500'>
+                              <span className='w-2.5 h-2.5 rounded-full bg-pink-500 scale-0 peer-checked:scale-100 transition-transform duration-150'></span>
+                            </span>
+                            <span className='ml-3 text-sm'>Yes</span>
+                          </label>
+                          <label className='flex items-center cursor-pointer text-white'>
+                            <input
+                              type='radio'
+                              name='futureTeam'
+                              value='no'
+                              checked={formData.futureTeam === 'no'}
+                              onChange={() => handleFutureTeam('no')}
+                              className='sr-only peer'
+                            />
+                            <span className='w-5 h-5 rounded-full border-2 border-white/40 flex items-center justify-center transition-all peer-checked:border-pink-500'>
+                              <span className='w-2.5 h-2.5 rounded-full bg-pink-500 scale-0 peer-checked:scale-100 transition-transform duration-150'></span>
+                            </span>
+                            <span className='ml-3 text-sm'>No</span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Team Name (conditional) */}
+                    {team && !joinTeam && (
+                      <div className='mt-6'>
+                        <label htmlFor='teamName' className={labelClasses}>Team Name</label>
+                        <input
+                          type='text'
+                          id='teamName'
+                          name='teamName'
+                          value={formData.teamName}
+                          onChange={handleInputChange}
+                          className={baseInput + ' border-white/20'}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  {/* Submit */}
+                  <div className='md:col-span-2 pt-4'>
+                    <button
+                      type='submit'
+                      disabled={isLoading}
+                      className={`w-full py-3 px-8 rounded-sm text-white text-base uppercase tracking-widest font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#1f2133] ${isLoading ? 'bg-pink-300 cursor-not-allowed' : 'bg-pink-500 hover:bg-pink-400'}`}
+                    >
+                      {isLoading ? 'Submitting...' : 'Register Now'}
+                    </button>
+                  </div>
+                </form>
               </div>
-              <button type='submit' className={`${isLoading ? "bg-blue-300" : "bg-blue-600"} w-[130px] mt-[10px] text-white p-2 rounded-md hover:bg-blue-700 cursor-pointer transition-colors duration-300`}>
-                {isLoading ? "Loading..." : "Register Now"}
-              </button>
-            </form>
-          </div>
-
-
-          <div className='flex-1 mx-[100px] flex flex-col mt-[20px] ml-[150px] '>
-            {/* event details-desktop view */}
-            {!isMobile.matches && (<div className='w-[400px] flex flex-col gap-2 mt-[20px] bg-[#2d2b3c] rounded-lg p-5 mr-[30px]'>
-              <span className='text-[24px] font-semibold'>Event Details</span>
-              <p className='text-[17px]'>
-                Join us for an exciting event filled with fun and learning. Participate in this gaming event and showcase your skills. Don't miss out on the chance to win amazing prizes!
-              </p>
-              <p className='text-[18px] mt-2'>
-                Date: 26th August 2025<br />
-                Venue: CS classroom<br />
-                Time: 4:30 PM
-              </p>
-            </div>)}
-
-            {/* sponsor details */}
-            <div className={`flex flex-col mt-[30px] `}>
-              <span className='text-[24px] font-semibold '>Sponsors</span>
-              <img src='sponsor.png' alt='Sponsor Logo' className='w-[300px] lg:w-[200px] h-[200px] rounded-lg my-5' />
             </div>
-
-          </div>
-        </div>)}
+          </section>
+        )}
 
         {thankYou && (
-          <div className='fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-50'>
-            <div className='bg-white text-black p-5 rounded-lg text-center'>
+          <div className='fixed top-0 left-0 w-full h-full bg-black/60 flex items-center justify-center z-50 px-4'>
+            <div className='bg-white text-black p-8 rounded-lg text-center max-w-md w-full shadow-xl'>
               <h2 className='text-2xl font-bold mb-4'>Thank You for Registering!</h2>
-              <p className='mb-4'>Your registration has been successfully completed.</p>
-              <button onClick={() => setThankYou(false)} className='bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition'>
+              <p className='mb-6 text-gray-700'>Your registration has been successfully completed.</p>
+              <button
+                onClick={() => setThankYou(false)}
+                className='bg-pink-500 hover:bg-pink-600 text-white px-6 py-2.5 rounded-md font-medium transition-colors'
+              >
                 Close
               </button>
             </div>
