@@ -16,7 +16,7 @@ const EventRegistrationHeader = () => {
             />
           
             <div className="absolute -bottom-0 right-0 bg-gray-800/80 text-gray-400 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none hidden md:block">
-              Made by Leon Tom Vechoor
+             Leon Tom Vechoor
             </div>
           </div>
         </div>
